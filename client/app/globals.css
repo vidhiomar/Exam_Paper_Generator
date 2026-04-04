@@ -3,6 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes gradient {
+  to {
+    background-position: 200% center;
+  }
+}
+
 :root {
   --font-dm-sans: 'DM Sans', system-ui, sans-serif;
   --font-jetbrains-mono: 'JetBrains Mono', monospace;
@@ -118,4 +124,64 @@ body {
   border-color: #4F46E5 !important;
   background: rgba(79, 70, 229, 0.04) !important;
   box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
+}
+
+@keyframes gradient {
+  to {
+    background-position: 200% center;
+  }
+}
+
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
+
+html, body {
+  background: #080c18;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sora {
+  font-family: 'Sora', system-ui, sans-serif;
+}
+
+.dm {
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* dot grid */
+.dot-bg {
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* aurora text */
+.aurora-text {
+  background: linear-gradient(120deg, #a5b4fc 0%, #67e8f9 50%, #c4b5fd 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: aurora 5s linear infinite;
+}
+
+@keyframes aurora {
+  to { background-position: 200% center; }
+}
+
+/* shimmer */
+@keyframes sweep {
+  from { background-position: 200% 0 }
+  to { background-position: -200% 0 }
+}
+
+/* scan */
+@keyframes scanDown {
+  0% { top:-2px; opacity:0; }
+  10% { opacity:1; }
+  90% { opacity:1; }
+  100% { top:100%; opacity:0; }
 }

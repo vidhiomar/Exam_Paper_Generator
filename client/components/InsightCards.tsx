@@ -8,7 +8,7 @@ import {
   BarChart2,
   Target,
 } from 'lucide-react';
-import { mockInsights } from '@/lib/mockData';
+import { InsightData } from '@/lib/exam-data';
 
 interface InsightCardProps {
   icon: React.ElementType;
@@ -87,11 +87,12 @@ const DifficultyBar = ({
 
 interface InsightCardsProps {
   isLoading?: boolean;
+  data: InsightData;
 }
 
-export default function InsightCards({ isLoading = false }: InsightCardsProps) {
+export default function InsightCards({ isLoading = false, data }: InsightCardsProps) {
   const { totalMarks, totalQuestions, difficulty, difficultyBreakdown, estimatedTime, coverage } =
-    mockInsights;
+    data;
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -144,7 +145,7 @@ export default function InsightCards({ isLoading = false }: InsightCardsProps) {
       <InsightCard
         icon={BarChart2}
         label="Avg Marks/Q"
-        value={mockInsights.avgMarksPerQuestion}
+        value={data.avgMarksPerQuestion}
         subtext="Per question allocation"
         accentColor="text-cyan-600"
         bgColor="bg-cyan-50"

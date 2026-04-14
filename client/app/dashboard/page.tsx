@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -11,39 +12,92 @@ import {
   Wand2,
   Clock,
 } from 'lucide-react';
+
 import AnimatedBackground from '@/components/AnimatedBackground';
 import Sidebar from '@/components/Sidebar';
 import BlueprintTable from '@/components/BlueprintTable';
 import InsightCards from '@/components/InsightCards';
 import Charts from '@/components/Charts';
+import { generatePaper } from '@/lib/api';
+import {
+  BlueprintData,
+  getStoredBlueprint,
+  getInsightData,
+  getBlueprintRows,
+  getPieData,
+  getBarData,
+} from '@/lib/exam-data';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [blueprint, setBlueprint] = useState<BlueprintData | null>(null);
 
+  useEffect(() => {
+    const storedBlueprint = getStoredBlueprint();
+
+    if (!storedBlueprint) {
+      toast.error('No blueprint found. Please upload a paper first.');
+      router.replace('/');
+      return;
+    }
+
+    setBlueprint(storedBlueprint);
+    setIsLoading(false);
+  }, [router]);
+
+  // GENERATE HANDLER (REAL API)
   const handleGenerate = async () => {
+    if (!blueprint) {
+      toast.error('No blueprint found. Please upload a paper first.');
+      return;
+    }
+
     setIsGenerating(true);
+
     const toastId = toast.loading('Generating predicted paper...', {
       description: 'AI is crafting questions based on blueprint patterns.',
     });
-    await new Promise((r) => setTimeout(r, 2800));
-    toast.dismiss(toastId);
-    toast.success('Paper generated!', { description: 'Your predicted exam paper is ready.' });
-    setIsGenerating(false);
-    router.push('/paper');
+
+    try {
+      const data = await generatePaper(blueprint);
+
+      localStorage.setItem(
+        'generated_paper',
+        JSON.stringify(data.generated_paper)
+      );
+
+      toast.dismiss(toastId);
+      toast.success('Paper generated!', {
+        description: 'Your predicted exam paper is ready.',
+      });
+
+      // Navigate
+      router.push('/paper');
+    } catch (err) {
+      console.error(err);
+      toast.dismiss(toastId);
+      toast.error('Generation failed. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
+
+  const insightData = getInsightData(blueprint);
+  const blueprintRows = getBlueprintRows(blueprint);
+  const pieData = getPieData(blueprint);
+  const barData = getBarData(blueprint);
 
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar />
 
-      {/* Main content — offset for sidebar */}
+      {/* Main content */}
       <main className="flex-1 ml-16 min-w-0">
-        {/* Animated Header Banner */}
+        {/* Header */}
         <div className="relative h-36 overflow-hidden bg-gradient-to-r from-slate-900 via-primary-900 to-slate-900">
           <AnimatedBackground />
-          {/* Overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 via-primary-900/50 to-slate-900/60 backdrop-blur-[1px]" />
 
           <div className="relative z-10 h-full flex items-end px-8 pb-5">
@@ -59,9 +113,11 @@ export default function DashboardPage() {
                     AI Analysis Complete
                   </span>
                 </div>
+
                 <h1 className="text-2xl font-bold text-white tracking-tight">
                   Exam Blueprint Analysis
                 </h1>
+
                 <p className="text-sm text-slate-300 mt-1">
                   Computer Science Fundamentals · CSE-301 · 5th Semester
                 </p>
@@ -75,17 +131,21 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20">
                   <Clock size={12} className="text-slate-300" />
-                  <span className="text-xs text-slate-300 font-medium">April 2026</span>
+                  <span className="text-xs text-slate-300 font-medium">
+                    April 2026
+                  </span>
                 </div>
+
                 <button
                   onClick={() => toast.info('Re-analyzing paper...')}
-                  className="p-2 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
+                  className="p-2 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20"
                 >
                   <RefreshCw size={14} />
                 </button>
+
                 <button
                   onClick={() => toast.success('Report exported!')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors text-xs font-medium"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 text-xs font-medium"
                 >
                   <Download size={12} />
                   Export
@@ -95,121 +155,79 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Dashboard body */}
+        {/* Body */}
         <div className="p-6 space-y-6 max-w-[1200px]">
-          {/* Insight cards */}
+          {/* Insights */}
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Key Insights
               </h2>
-              <button className="flex items-center gap-1 text-xs text-primary-600 font-semibold hover:text-primary-700 transition-colors">
+
+              <button className="flex items-center gap-1 text-xs text-primary-600 font-semibold">
                 View all <ChevronRight size={12} />
               </button>
             </div>
-            <InsightCards isLoading={isLoading} />
+
+            <InsightCards isLoading={isLoading} data={insightData} />
           </section>
 
-          {/* Blueprint Table */}
+          {/* Blueprint */}
           <section>
-            <div className="flex items-center justify-between mb-3">
+            <div className="mb-3">
               <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Blueprint Table
               </h2>
             </div>
-            <BlueprintTable isLoading={isLoading} />
+
+            <BlueprintTable isLoading={isLoading} rows={blueprintRows} />
           </section>
 
           {/* Charts */}
           <section>
-            <div className="flex items-center justify-between mb-3">
+            <div className="mb-3">
               <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Visual Analytics
               </h2>
             </div>
-            <Charts isLoading={isLoading} />
+
+            <Charts isLoading={isLoading} pieData={pieData} barData={barData} />
           </section>
 
           {/* Generate CTA */}
           <motion.section
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55, duration: 0.45 }}
           >
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary-600 via-primary-700 to-secondary p-[1px] shadow-xl shadow-primary-200">
-              <div className="relative rounded-2xl bg-gradient-to-r from-primary-600/95 via-primary-700/95 to-secondary/95 p-7 overflow-hidden">
-                {/* Background decoration */}
-                <div className="absolute -right-16 -top-12 w-52 h-52 rounded-full bg-white/5 blur-3xl" />
-                <div className="absolute -left-8 -bottom-8 w-40 h-40 rounded-full bg-cyan-400/10 blur-2xl" />
+            <div className="rounded-2xl bg-gradient-to-r from-primary-600 to-secondary p-6">
+              <div className="flex items-center justify-between flex-wrap gap-6">
+                <div>
+                  <h3 className="text-xl font-bold text-white">
+                    Generate Predicted Paper
+                  </h3>
 
-                <div className="relative flex items-center justify-between gap-6 flex-wrap">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <Wand2 size={14} className="text-primary-200" />
-                      <span className="text-xs font-bold text-primary-200 uppercase tracking-widest">
-                        Ready to Generate
-                      </span>
-                    </div>
-                    <h3 className="text-xl font-bold text-white tracking-tight">
-                      Generate Predicted Paper
-                    </h3>
-                    <p className="text-sm text-primary-200 mt-1 max-w-md">
-                      AI will create a new exam paper following the exact same blueprint
-                      patterns, difficulty distribution, and Bloom's taxonomy levels.
-                    </p>
-                  </div>
-
-                  <motion.button
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    whileHover={!isGenerating ? { scale: 1.04 } : {}}
-                    whileTap={!isGenerating ? { scale: 0.97 } : {}}
-                    className={`ripple flex items-center gap-2.5 px-7 py-3.5 rounded-xl font-bold text-sm
-                      transition-all duration-300 whitespace-nowrap
-                      ${isGenerating
-                        ? 'bg-white/20 text-white/60 cursor-not-allowed'
-                        : 'bg-white text-primary-600 hover:bg-slate-50 shadow-lg shadow-black/20 hover:shadow-xl'
-                      }`}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={16} />
-                        Generate Paper
-                        <ArrowRight size={15} className="opacity-60" />
-                      </>
-                    )}
-                  </motion.button>
+                  <p className="text-sm text-white/80 mt-1 max-w-md">
+                    AI will create a new exam paper based on extracted blueprint.
+                  </p>
                 </div>
+
+                <button
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold
+                  ${
+                    isGenerating
+                      ? 'bg-white/20 text-white/60'
+                      : 'bg-white text-primary-600'
+                  }`}
+                >
+                  {isGenerating ? 'Generating...' : 'Generate Paper'}
+                </button>
               </div>
             </div>
           </motion.section>
         </div>
       </main>
     </div>
-  );
-}
-
-// Missing import fix
-function ArrowRight({ size, className }: { size: number; className?: string }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </svg>
   );
 }

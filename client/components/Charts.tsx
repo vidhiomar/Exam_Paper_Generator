@@ -14,7 +14,7 @@ import {
   Legend,
 } from 'recharts';
 import { PieChart as PieIcon, BarChart2 } from 'lucide-react';
-import { mockPieData, mockBarData } from '@/lib/mockData';
+import { PieDatum, BarDatum } from '@/lib/exam-data';
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
@@ -29,9 +29,9 @@ const CustomTooltip = ({ active, payload }: any) => {
   );
 };
 
-const CustomLegend = () => (
+const CustomLegend = ({ pieData }: { pieData: PieDatum[] }) => (
   <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 justify-center">
-    {mockPieData.map((entry) => (
+    {pieData.map((entry) => (
       <div key={entry.name} className="flex items-center gap-1.5">
         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
         <span className="text-xs text-slate-500">{entry.name}</span>
@@ -46,9 +46,11 @@ const SkeletonChart = ({ height = 220 }: { height?: number }) => (
 
 interface ChartsProps {
   isLoading?: boolean;
+  pieData: PieDatum[];
+  barData: BarDatum[];
 }
 
-export default function Charts({ isLoading = false }: ChartsProps) {
+export default function Charts({ isLoading = false, pieData, barData }: ChartsProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Pie chart */}
@@ -75,7 +77,7 @@ export default function Charts({ isLoading = false }: ChartsProps) {
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
-                  data={mockPieData}
+                  data={pieData}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -85,7 +87,7 @@ export default function Charts({ isLoading = false }: ChartsProps) {
                   animationBegin={200}
                   animationDuration={800}
                 >
-                  {mockPieData.map((entry, idx) => (
+                  {pieData.map((entry, idx) => (
                     <Cell
                       key={idx}
                       fill={entry.color}
@@ -97,7 +99,7 @@ export default function Charts({ isLoading = false }: ChartsProps) {
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
-            <CustomLegend />
+            <CustomLegend pieData={pieData} />
           </>
         )}
       </motion.div>
@@ -124,7 +126,7 @@ export default function Charts({ isLoading = false }: ChartsProps) {
         ) : (
           <ResponsiveContainer width="100%" height={240}>
             <BarChart
-              data={mockBarData}
+              data={barData}
               barCategoryGap="30%"
               margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
             >

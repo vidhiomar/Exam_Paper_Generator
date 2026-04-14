@@ -1,9 +1,9 @@
 'use client';
 import { motion } from 'framer-motion';
 import { BookOpen, TrendingUp } from 'lucide-react';
-import { mockBlueprintData, BlueprintRow } from '@/lib/mockData';
+import { BlueprintTableRow } from '@/lib/exam-data';
 
-const DifficultyBadge = ({ level }: { level: BlueprintRow['difficulty'] }) => {
+const DifficultyBadge = ({ level }: { level: BlueprintTableRow['difficulty'] }) => {
   const styles = {
     Easy: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     Medium: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -34,11 +34,12 @@ const SkeletonRow = () => (
 
 interface BlueprintTableProps {
   isLoading?: boolean;
+  rows: BlueprintTableRow[];
 }
 
-export default function BlueprintTable({ isLoading = false }: BlueprintTableProps) {
-  const totalMarks = mockBlueprintData.reduce((a, r) => a + r.marks, 0);
-  const totalQs = mockBlueprintData.reduce((a, r) => a + r.questions, 0);
+export default function BlueprintTable({ isLoading = false, rows }: BlueprintTableProps) {
+  const totalMarks = rows.reduce((a, r) => a + r.marks, 0);
+  const totalQs = rows.length;
 
   return (
     <motion.div
@@ -74,7 +75,7 @@ export default function BlueprintTable({ isLoading = false }: BlueprintTableProp
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-50">
-              {['Topic', 'Sub-topic', 'Questions', 'Marks', "Bloom's Level", 'Difficulty'].map((h) => (
+              {['Section', 'Question', 'Sub-parts', 'Marks', "Bloom's Level", 'Difficulty'].map((h) => (
                 <th
                   key={h}
                   className="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider"
@@ -87,7 +88,7 @@ export default function BlueprintTable({ isLoading = false }: BlueprintTableProp
           <tbody>
             {isLoading
               ? [...Array(5)].map((_, i) => <SkeletonRow key={i} />)
-              : mockBlueprintData.map((row, idx) => (
+              : rows.map((row, idx) => (
                   <motion.tr
                     key={row.id}
                     initial={{ opacity: 0, x: -8 }}
@@ -96,20 +97,19 @@ export default function BlueprintTable({ isLoading = false }: BlueprintTableProp
                     className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors group"
                   >
                     <td className="px-5 py-4">
-                      <span className="text-sm font-semibold text-slate-800">{row.topic}</span>
-                      <div className="text-xs text-slate-400 mt-0.5">{row.chapter}</div>
+                      <span className="text-sm font-semibold text-slate-800">Section {row.section}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="text-sm text-slate-600">{row.subtopic}</span>
+                      <span className="text-sm text-slate-600 line-clamp-2">{row.question}</span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         <div className="flex gap-0.5">
-                          {[...Array(row.questions)].map((_, i) => (
+                          {[...Array(Math.max(row.subquestions, 1))].map((_, i) => (
                             <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary-300" />
                           ))}
                         </div>
-                        <span className="text-sm text-slate-700 font-medium">{row.questions}</span>
+                        <span className="text-sm text-slate-700 font-medium">{row.subquestions}</span>
                       </div>
                     </td>
                     <td className="px-5 py-4">

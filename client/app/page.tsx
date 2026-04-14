@@ -3,11 +3,13 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   Upload, FileText, X, Sparkles, ArrowRight,
   Brain, Zap, ShieldCheck, Layers,
   CheckCircle2, ScanLine, ChevronRight,
 } from 'lucide-react';
+import { uploadPDF } from '@/lib/api';
 
 /* ─── helpers ─────────────────────────────────────────────────────── */
 function cn(...cls: (string | boolean | undefined)[]) {
@@ -202,11 +204,37 @@ export default function Home() {
 
   const handleAnalyze = async () => {
     if (!file || analyzing) return;
+
     setAnalyzing(true);
-    await new Promise(r => setTimeout(r, 2600));
-    setDone(true);
-    await new Promise(r => setTimeout(r, 460));
-    router.push('/dashboard');
+
+    const toastId = toast.loading('Analyzing uploaded paper...', {
+      description: 'Extracting blueprint JSON from your exam paper.',
+    });
+
+    try {
+      const data = await uploadPDF(file);
+
+      if (!data?.blueprint?.sections?.length) {
+        throw new Error('No sections were extracted from the uploaded paper.');
+      }
+
+      localStorage.setItem('blueprint', JSON.stringify(data.blueprint));
+      localStorage.removeItem('generated_paper');
+
+      setDone(true);
+      toast.dismiss(toastId);
+      toast.success('Blueprint extracted successfully.');
+
+      await new Promise((r) => setTimeout(r, 460));
+      router.push('/dashboard');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Upload failed.';
+      toast.dismiss(toastId);
+      toast.error('Analysis failed.', { description: message });
+      setDone(false);
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   return (
@@ -510,7 +538,7 @@ export default function Home() {
                     className={cn(
                       'btn-ai w-full py-4 rounded-2xl text-sm font-bold tracking-wide text-white',
                       'flex items-center justify-center gap-3',
-                      file && !analyzing && 'shimmer'
+                      file && !analyzing ? 'shimmer' : undefined
                     )}
                   >
                     <AnimatePresence mode="wait">

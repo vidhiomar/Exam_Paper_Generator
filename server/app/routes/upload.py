@@ -1,6 +1,7 @@
 import os
 from fastapi import APIRouter, UploadFile, File
 from app.services.pdf_service import PDFService
+from app.services.blueprint_service import BlueprintService
 
 router = APIRouter()
 
@@ -18,8 +19,10 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     # Extract text
     text = PDFService.extract_text(file_path)
+    blueprint = BlueprintService.extract_blueprint(text)
 
     return {
         "filename": file.filename,
-        "preview": text[:1000]
+        "preview": text[:1000],
+        "blueprint": blueprint
     }

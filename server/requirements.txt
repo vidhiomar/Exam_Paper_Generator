@@ -2,3 +2,8 @@ fastapi
 uvicorn 
 pydantic
 python-multipart
+regex
+pdfplumber
+logging
+logger
+groq

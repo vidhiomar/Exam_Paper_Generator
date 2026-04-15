@@ -80,31 +80,14 @@ flowchart LR
 
 ---
 
-## Demo Moments
 
-These sections are designed to feel lively on GitHub using animated SVG plus bold graphics.
 
 <div align="center">
   <img src="https://readme-typing-svg.demolab.com?font=DM+Sans&weight=700&size=18&duration=2400&pause=1000&color=F97316&center=true&vCenter=true&width=900&lines=Upload+%E2%86%92+Analyze+%E2%86%92+Visualize+%E2%86%92+Generate;Built+for+beautiful+exam+intelligence+workflows" alt="animated headline" />
 </div>
 
-### Suggested GIF slots
 
-If you want to make the README even more premium later, add screen-recording GIFs here:
 
-- `assets/readme/upload-demo.gif` for the upload and analysis flow
-- `assets/readme/dashboard-demo.gif` for the insights and chart interactions
-- `assets/readme/generation-demo.gif` for predicted paper generation
-
-You can then embed them with:
-
-```md
-![Upload Demo](./assets/readme/upload-demo.gif)
-![Dashboard Demo](./assets/readme/dashboard-demo.gif)
-![Generation Demo](./assets/readme/generation-demo.gif)
-```
-
----
 
 ## Tech Stack
 
@@ -157,7 +140,7 @@ AI-exam-generator/
 ### 1. Clone the project
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/vidhiomar/Exam_Paper_Generator.git
 cd AI-exam-generator
 ```
 
@@ -263,3 +246,5 @@ This project is a strong base for:
 ## Credits
 
 Built with Next.js, FastAPI, Groq, Tailwind CSS, Framer Motion, and a lot of curiosity about how exam patterns can be turned into usable intelligence.
+
+Vidhi Omar(AIML DEVELOPER)
